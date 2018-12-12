@@ -1,16 +1,16 @@
-#__author__ = ritvikareddy2
-#__date__ = 2018-12-11
+# __author__ = ritvikareddy2
+# __date__ = 2018-12-12
+
 
 import argparse
 
-import trainer.model as model
-import trainer.utils as utils
+import model
+import utils
 
 from datetime import datetime
 
 
 def train(job_dir, train_file, **args):
-
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     print('-----------------------')
     print('Using train_file located at {}'.format(train_file))
@@ -22,8 +22,13 @@ def train(job_dir, train_file, **args):
     x_train, y_train = utils.process_data(data, 'Training')
     x_validation, y_validation = utils.process_data(data, 'PublicTest')
 
-    cnn_model = model.get_cnn_model_A()
+    utils.read_file_from_gcs('shape_predictor_68_face_landmarks.dat')
 
+    # get face landmarks
+    x_train_landmarks = utils.extract_landmark_features(x_train)
+    x_validation_landmarks = utils.extract_landmark_features(x_validation)
+
+    cnn_model = model.get_hybrid_model('B', True)
 
     # num epochs
     epochs = 100
@@ -32,20 +37,21 @@ def train(job_dir, train_file, **args):
     batch_size = 100
 
     # run model
-    model_history = cnn_model.fit(x_train, y_train, epochs=epochs,
-                              shuffle=True,
-                              batch_size=batch_size, validation_data=(x_validation, y_validation),
-                              verbose=2)
+    model_history = cnn_model.fit([x_train, x_train_landmarks], y_train, epochs=epochs,
+                                  shuffle=True,
+                                  batch_size=batch_size,
+                                  validation_data=([x_validation, x_validation_landmarks], y_validation),
+                                  verbose=2)
 
     print("model trained")
 
-    utils.plot_losses(job_dir, model_history, 'loss_comparison_A.png')
+    utils.plot_losses(job_dir, model_history, 'loss_comparison_B_landmarks.png')
 
     print("plotted losses")
 
-    cnn_model.save('fer_model.h5')
+    cnn_model.save('fer_model_B_landmarks.h5')
 
-    utils.copy_file_to_gcs(job_dir, 'fer_model.h5')
+    utils.copy_file_to_gcs(job_dir, 'fer_model_B_landmarks.h5')
 
     print("--------------------DONE----------------------")
 

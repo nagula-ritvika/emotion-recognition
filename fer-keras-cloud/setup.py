@@ -4,9 +4,13 @@
 from setuptools import setup, find_packages
 
 REQUIRED_PACKAGES = [
+    # 'opencv-python',
+    # 'cmake',
+    # 'dlib',
     'matplotlib',
     'keras',
-    'h5py'
+    'h5py',
+    # 'scikit-image'
 ]
 
 setup(

@@ -39,7 +39,7 @@ def get_cnn_model_A():
     model.add(Dropout(0.6))
     # Output Layer
     model.add(Dense(7, activation='softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='momentum', metrics=['accuracy'])
     model.summary()
     return model
 
